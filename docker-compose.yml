@@ -44,7 +44,7 @@ services:
     container_name: minio
     hostname: minio
     ports:
-      - 9001:9001
+      - 9000:9000
     volumes:
       - vol_minio:/data
     networks:
