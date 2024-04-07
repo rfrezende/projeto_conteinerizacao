@@ -1,0 +1,134 @@
+services:
+  # Ambiente do Laboratorio
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    hostname: rabbitmq
+    ports:
+      - '15672:15672'
+    volumes:
+      - ./conf_files/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - vol_rabbitmq:/var/lib/rabbitmq
+    networks:
+      - nw_projeto
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity --formatter json | tail -1 | grep -q '"result":"ok"'
+      interval: 10s
+      timeout: 10s
+      retries: 2
+      start_period: 10s
+  
+  redis:
+    image: redis/redis-stack
+    container_name: redis
+    hostname: redis
+    ports:
+      - 8001:8001
+    volumes:
+      - vol_redis:/data
+    networks:
+      - nw_projeto
+    environment:
+      REDIS_ARGS: --save 60 1000 --appendonly yes
+      REDISTIMESERIES_ARGS: "RETENTION_POLICY=20"
+    healthcheck:
+      test: "redis-cli ping | grep -q PONG"
+      interval: 10s
+      timeout: 10s
+      retries: 2
+      start_period: 10s
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    hostname: minio
+    ports:
+      - 9001:9001
+    volumes:
+      - vol_minio:/data
+    networks:
+      - nw_projeto
+    # MinIO é chato e precisa das senhas definidas em variavel de ambiente.
+    env_file:
+      - ./env_files/minio.env
+    command: server /data --console-address ":9001"
+    secrets:
+      - usuario
+      - senha
+    healthcheck:
+      test: 'mc alias set myminio http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"; mc ping --exit --quiet myminio > /dev/null'
+      interval: 10s
+      timeout: 10s
+      retries: 2
+      start_period: 10s
+
+  # Containers com os programas auxiliares
+  base_scripts:
+    image: projeto_ada:latest
+    build: 
+      context: .
+      dockerfile: ./base_scripts.Dockerfile
+    container_name: base_scripts
+    volumes:
+      - ./scripts/rabbitmq_connection.py:/scripts/rabbitmq_connection.py
+      - ./scripts/minio_connection.py:/scripts/minio_connection.py
+      - ./scripts/vazio.py:/scripts/app.py
+    environment:
+      PYTHONUNBUFFERED: 1
+    networks:
+      - nw_projeto
+    secrets:
+      - usuario
+      - senha
+
+  preparar_ambiente:
+    extends: base_scripts
+    container_name: preparar_ambiente
+    volumes:
+      - ./scripts/preparar_ambiente.py:/scripts/app.py 
+    networks:
+      - nw_projeto
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  producer_transacoes:
+    extends: base_scripts
+    container_name: producer_transacoes
+    volumes:
+      - ./scripts/producer_transacoes.py:/scripts/app.py
+    networks:
+      - nw_projeto
+    depends_on:
+      preparar_ambiente:
+        condition: service_completed_successfully
+
+  consumer_transacoes:
+    extends: base_scripts
+    container_name: consumer_transacoes
+    volumes:
+      - ./scripts/consumer-transacoes.py:/scripts/app.py
+    networks:
+      - nw_projeto
+    depends_on:
+      preparar_ambiente:
+        condition: service_completed_successfully
+
+secrets:
+  usuario:
+    file: ./secrets/usuario_padrao.txt
+  senha:
+    file: ./secrets/senha_padrao.txt
+
+networks:
+  nw_projeto:
+
+volumes:
+  vol_redis:
+  vol_minio:
+  vol_rabbitmq:
