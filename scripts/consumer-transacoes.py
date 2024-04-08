@@ -5,7 +5,7 @@
 #  - Retira do RabbitMQ e grava no Redis.
 #  - Notifica que houve movimentação na conta
 # 
-# Parte do projeto do módulo Serviços Cloud do treinamento Jornada Digital 
+# Parte do projeto do módulo Conteinerização do treinamento Jornada Digital 
 # ADA-Caixa
 #
 # Autor: Roberto Flavio Rezende

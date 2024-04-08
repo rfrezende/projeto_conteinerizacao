@@ -3,7 +3,7 @@
 #
 # Módulo python para criar conexáo com o RabbitMQ.
 # 
-# Parte do projeto para o módulo Serviços Cloud do treinamento Jornada Digital 
+# Parte do projeto para o módulo Conteinerização do treinamento Jornada Digital 
 # ADA-Caixa
 #
 # Autor: Roberto Flavio Rezende

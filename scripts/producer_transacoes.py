@@ -3,7 +3,7 @@
 #
 # Script para enviar solicitações de transações para o RabbitMQ
 #
-# Parte do projeto do módulo Serviços Cloud do treinamento Jornada Digital 
+# Parte do projeto do módulo Conteinerização do treinamento Jornada Digital 
 # ADA-Caixa
 #
 # Autor: Roberto Flavio Rezende
@@ -29,7 +29,7 @@ while True:
     # Sem o sleep o script iria gerar milhares de transações por segundo e moer a CPU.
     sleep(2)
     
-    # Coloca todas as transacoes no em Sao Paulo e 10% para Rio de Janeiro com o intuito de gerar "fraude"
+    # Coloca todas as transacoes em Sao Paulo e 10% para Rio de Janeiro com o intuito de gerar "fraude"
     cidade = 'Rio de Janeiro' if random.random() < 0.1 else 'Sao Paulo'
     
     # Escolhe uma conta aleatoriamente para enviar a transação
@@ -42,5 +42,7 @@ while True:
     
     timestamp = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
     transacao = {'conta': conta_origem, 'transacao': {'conta_destino': conta_destino, 'valor': valor, 'cidade': cidade, 'timestamp': timestamp}}
+    
     channel.basic_publish(exchange='transacoes', routing_key='solicitar', body=json.dumps(transacao))
     print(transacao)
+    

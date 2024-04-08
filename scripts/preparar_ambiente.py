@@ -3,7 +3,7 @@
 #
 # Script para preparar o ambiente do Projeto
 #
-# Parte do projeto do módulo Serviços Cloud do treinamento Jornada Digital 
+# Parte do projeto do módulo Conteinerização do treinamento Jornada Digital 
 # ADA-Caixa
 #
 # Autor: Roberto Flavio Rezende
@@ -17,10 +17,10 @@ from rabbitmq_connection import new_connection as rabbitmq_con
 
 
 def write_out(msg):
-    """_summary_
+    """ Print no log do Docker
 
     Args:
-        msg (_type_): _description_
+        msg (str): Mensagem a ser impressa
     """
     mascara_timestamp = '%Y-%m-%d %H:%M:%S'
     timestamp = datetime.strftime(datetime.now(), mascara_timestamp)
@@ -28,7 +28,8 @@ def write_out(msg):
     
 
 def create_rbbitmq():
-    """_summary_
+    """ Prepara o ambiente do RabbitMQ.
+        Cria a exchange, a fila para as transações e faz o bind entre elas.
     """
     write_out('Preparando ambiente do RabbitMQ.')
     con = rabbitmq_con()
@@ -46,7 +47,8 @@ def create_rbbitmq():
 
 
 def create_minio():
-    """_summary_
+    """ Prepara o ambiente do MinIO.
+        Cria o bucket para receber os relatórios e configura a política de segurança.
     """
     write_out('Preparando ambiente do MinIO.')
     client = minio_con()
@@ -87,7 +89,10 @@ def create_minio():
     
     
 def create_redis():
-    """_summary_
+    """ Prepara o ambiente do Redis.
+        Gera 20 contas aleatórias.
+        Cria uma lista com as contas no Redis.
+        Cria uma entrada do tipo lista para cada conta no Redis
     """
     r = redis.Redis(host='redis', port=6379, decode_responses=True, )
 
@@ -109,10 +114,15 @@ def create_redis():
     write_out(f'Ambiente do Redis pronto.')
     
 
-if __name__ == '__main__':
+def main():
+    """ Main ;)
+    """
     write_out('Preparando o ambiente do projeto.')
     create_rbbitmq()
     create_minio()
     create_redis()
     write_out('Ambiente do projeto pronto para utilização.')
+
+if __name__ == '__main__':
+    main()
     
