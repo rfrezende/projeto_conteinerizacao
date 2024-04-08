@@ -15,7 +15,7 @@ Os scripts executam em containers próprios como a seguir:
   - Cria os objetos JSON com os números das contas e uma lista de transações no Redis. 
   - Cria a exchange, a fila e o biding no RabbitMQ
   - Cria o bucket no MinIO.
-  - Executa e para o container.
+  - Obs.: Executa e para o container.
 - `producer_transacoes.py`: Gera transaçoes aleatórias e envia para o RabbitMQ.
 - `consumer_transacoes.py`: Consome a fila no RabbitMQ, grava o cache e gera o relatório de fraude, caso seja identificado.
 
